@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   db:
     build:
@@ -8,11 +6,19 @@ services:
     container_name: atividade02-db
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: atividade
+      MYSQL_DATABASE: atividade        # <- usado pela imagem mysql para criar o DB
+      MYSQL_USER: app
+      MYSQL_PASSWORD: app123
     volumes:
       - ./db/codigo.sql:/docker-entrypoint-initdb.d/codigo.sql
     ports:
       - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
 
   web:
     build:
@@ -20,6 +26,14 @@ services:
       dockerfile: Dockerfile.web
     container_name: atividade02-web
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    environment:
+      MYSQL_ADDRESS: db               # host do MySQL (nome do serviço)
+      MYSQL_PORT: "3306"
+      MYSQL_DBNAME: atividade         # <- EXATAMENTE o nome que seu main.py pede
+      MYSQL_USERNAME: app
+      MYSQL_PASSWORD: app123
     ports:
-      - "5000:5000"
+      - "8200:8200"
+    restart: on-failure
