@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile.mysql
+    container_name: atividade02-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: atividade
+    volumes:
+      - ./db/codigo.sql:/docker-entrypoint-initdb.d/codigo.sql
+    ports:
+      - "3306:3306"
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.web
+    container_name: atividade02-web
+    depends_on:
+      - db
+    ports:
+      - "5000:5000"
